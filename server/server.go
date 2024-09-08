@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ezeportela/go-rest-ws/database"
+	"github.com/ezeportela/go-rest-ws/repositories"
 	"github.com/gorilla/mux"
 )
 
@@ -47,6 +49,12 @@ func (b *Broker) Config() *Config {
 func (b *Broker) Start(binder func(s Server, r *mux.Router)) {
 	b.router = mux.NewRouter()
 	binder(b, b.router)
+
+	repo, err := database.NewPostgresRepository(b.config.DatabaseUrl)
+	if err != nil {
+		log.Fatalf("failed to create repository: %v", err)
+	}
+	repositories.SetUserRepository(repo)
 
 	log.Println("starting server on port", b.config.Port)
 	if err := http.ListenAndServe(b.config.Port, b.router); err != nil {

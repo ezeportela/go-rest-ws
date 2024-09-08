@@ -36,4 +36,5 @@ func main() {
 
 func bindRoutes(s server.Server, r *mux.Router) {
 	r.HandleFunc("/healthcheck", handlers.HealthCheckHandler(s)).Methods("GET")
+	r.HandleFunc("/signup", handlers.SignUpHandler(s)).Methods("POST")
 }

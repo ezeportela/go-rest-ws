@@ -1,0 +1,10 @@
+services:
+  postgres:
+    build: "./database"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin1234
+      POSTGRES_DB: mydb
+    restart: always
+    ports:
+      - "5432:5432"

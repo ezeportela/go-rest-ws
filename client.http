@@ -1,1 +1,10 @@
 GET http://localhost:5050/healthcheck
+
+###
+
+POST http://localhost:5050/signup
+
+{
+    "email": "myemail@gmail.com",
+    "password": "mypassword"
+}
