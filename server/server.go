@@ -17,6 +17,7 @@ type Config struct {
 
 type Server interface {
 	Config() *Config
+	Start(binder func(s Server, r *mux.Router))
 }
 
 type Broker struct {
