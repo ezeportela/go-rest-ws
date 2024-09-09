@@ -30,8 +30,8 @@ func (r *PostgresRepository) InsertUser(ctx context.Context, user *models.User) 
 	return err
 }
 
-func (r *PostgresRepository) GetUserById(ctx context.Context, email string) (*models.User, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT id, email FROM users WHERE id = $1", email)
+func (r *PostgresRepository) GetUserById(ctx context.Context, id string) (*models.User, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT id, email FROM users WHERE id = $1", id)
 	defer func() {
 		err := rows.Close()
 		if err != nil {
@@ -46,6 +46,36 @@ func (r *PostgresRepository) GetUserById(ctx context.Context, email string) (*mo
 	user := &models.User{}
 	for rows.Next() {
 		err := rows.Scan(&user.Id, &user.Email)
+		if err != nil {
+			return nil, err
+		}
+
+		if err = rows.Err(); err != nil {
+			return nil, err
+		}
+
+		return user, nil
+	}
+
+	return user, nil
+}
+
+func (r *PostgresRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT id, email, password FROM users WHERE email = $1", email)
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Println("failed to close rows")
+		}
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	user := &models.User{}
+	for rows.Next() {
+		err := rows.Scan(&user.Id, &user.Email, &user.Password)
 		if err != nil {
 			return nil, err
 		}
