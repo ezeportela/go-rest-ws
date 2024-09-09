@@ -11,6 +11,7 @@ type UserRepository interface {
 	InsertUser(ctx context.Context, user *models.User) error
 	GetUserById(ctx context.Context, id string) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	InsertPost(ctx context.Context, post *models.Post) error
 }
 
 var userRepository UserRepository
@@ -33,4 +34,8 @@ func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 
 func Close() {
 	userRepository.Close()
+}
+
+func InsertPost(ctx context.Context, post *models.Post) error {
+	return userRepository.InsertPost(ctx, post)
 }

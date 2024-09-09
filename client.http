@@ -1,8 +1,11 @@
-GET http://localhost:5050/healthcheck
+@host=http://localhost:5050
+
+###
+GET {{host}}/healthcheck
 
 ###
 
-POST http://localhost:5050/signup
+POST {{host}}/signup
 
 {
     "email": "myemail2@gmail.com",
@@ -11,9 +14,27 @@ POST http://localhost:5050/signup
 
 ###
 
-POST http://localhost:5050/login
+# @name login
+POST {{host}}/login
 
 {
     "email": "myemail2@gmail.com",
     "password": "mypassword"
+}
+
+
+###
+
+# @ref login
+GET {{host}}/me
+Authorization: {{login.token}}
+
+###
+
+# @ref login
+POST {{host}}/posts
+Authorization: {{login.token}}
+
+{
+    "post_content": "This is my first post"
 }

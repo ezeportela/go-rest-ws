@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ezeportela/go-rest-ws/handlers"
+	"github.com/ezeportela/go-rest-ws/middlewares"
 	"github.com/ezeportela/go-rest-ws/server"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -35,7 +36,12 @@ func main() {
 }
 
 func bindRoutes(s server.Server, r *mux.Router) {
+	r.Use(middlewares.AuthMiddleware(s, []string{"healthcheck", "login", "signup"}))
+
 	r.HandleFunc("/healthcheck", handlers.HealthCheckHandler(s)).Methods("GET")
 	r.HandleFunc("/signup", handlers.SignUpHandler(s)).Methods("POST")
 	r.HandleFunc("/login", handlers.LoginHandler(s)).Methods("POST")
+	r.HandleFunc("/me", handlers.MeHandler(s)).Methods("GET")
+
+	r.HandleFunc("/posts", handlers.CreatePostHandler(s)).Methods("POST")
 }
