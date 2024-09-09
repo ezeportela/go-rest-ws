@@ -38,3 +38,25 @@ Authorization: {{login.token}}
 {
     "post_content": "This is my first post"
 }
+
+###
+
+# @ref login
+GET {{host}}/posts/2lq2JChJiv9xI7yRKfTNT9IM5vI
+Authorization: {{login.token}}
+
+###
+
+# @ref login
+PUT {{host}}/posts/2lq2JChJiv9xI7yRKfTNT9IM5vI
+Authorization: {{login.token}}
+
+{
+    "post_content": "This is my first post updated"
+}
+
+###
+
+# @ref login
+DELETE {{host}}/posts/2lq2JChJiv9xI7yRKfTNT9IM5vI
+Authorization: {{login.token}}

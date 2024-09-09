@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/ezeportela/go-rest-ws/handlers"
@@ -38,10 +39,13 @@ func main() {
 func bindRoutes(s server.Server, r *mux.Router) {
 	r.Use(middlewares.AuthMiddleware(s, []string{"healthcheck", "login", "signup"}))
 
-	r.HandleFunc("/healthcheck", handlers.HealthCheckHandler(s)).Methods("GET")
-	r.HandleFunc("/signup", handlers.SignUpHandler(s)).Methods("POST")
-	r.HandleFunc("/login", handlers.LoginHandler(s)).Methods("POST")
-	r.HandleFunc("/me", handlers.MeHandler(s)).Methods("GET")
+	r.HandleFunc("/healthcheck", handlers.HealthCheckHandler(s)).Methods(http.MethodGet)
+	r.HandleFunc("/signup", handlers.SignUpHandler(s)).Methods(http.MethodPost)
+	r.HandleFunc("/login", handlers.LoginHandler(s)).Methods(http.MethodPost)
+	r.HandleFunc("/me", handlers.MeHandler(s)).Methods(http.MethodGet)
 
-	r.HandleFunc("/posts", handlers.CreatePostHandler(s)).Methods("POST")
+	r.HandleFunc("/posts", handlers.CreatePostHandler(s)).Methods(http.MethodPost)
+	r.HandleFunc("/posts/{id}", handlers.GetPostByIdHandler(s)).Methods(http.MethodGet)
+	r.HandleFunc("/posts/{id}", handlers.UpdatePostHandler(s)).Methods(http.MethodPut)
+	r.HandleFunc("/posts/{id}", handlers.DeletePostHandler(s)).Methods(http.MethodDelete)
 }

@@ -12,6 +12,9 @@ type UserRepository interface {
 	GetUserById(ctx context.Context, id string) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	InsertPost(ctx context.Context, post *models.Post) error
+	GetPostById(ctx context.Context, id string) (*models.Post, error)
+	UpdatePost(ctx context.Context, post *models.Post) error
+	DeletePost(ctx context.Context, id string, userId string) error
 }
 
 var userRepository UserRepository
@@ -38,4 +41,16 @@ func Close() {
 
 func InsertPost(ctx context.Context, post *models.Post) error {
 	return userRepository.InsertPost(ctx, post)
+}
+
+func GetPostById(ctx context.Context, id string) (*models.Post, error) {
+	return userRepository.GetPostById(ctx, id)
+}
+
+func UpdatePost(ctx context.Context, post *models.Post) error {
+	return userRepository.UpdatePost(ctx, post)
+}
+
+func DeletePost(ctx context.Context, id string, userId string) error {
+	return userRepository.DeletePost(ctx, id, userId)
 }
