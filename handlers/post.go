@@ -3,12 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
+	"strconv"
 
 	"github.com/ezeportela/go-rest-ws/models"
 	"github.com/ezeportela/go-rest-ws/repositories"
 	"github.com/ezeportela/go-rest-ws/server"
-	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
 )
@@ -28,18 +27,8 @@ type ActionResponse struct {
 
 func CreatePostHandler(s server.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
-		token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(s.Config().JWTSecret), nil
-		})
+		claims, err := getToken(w, r, s.Config().JWTSecret)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		claims, ok := token.Claims.(*models.AppClaims)
-		if !ok || !token.Valid {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
 			return
 		}
 
@@ -78,23 +67,12 @@ func CreatePostHandler(s server.Server) http.HandlerFunc {
 
 func GetPostByIdHandler(s server.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
-		token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(s.Config().JWTSecret), nil
-		})
+		claims, err := getToken(w, r, s.Config().JWTSecret)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		claims, ok := token.Claims.(*models.AppClaims)
-		if !ok || !token.Valid {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
-			return
-		}
-
-		params := mux.Vars(r)
-		post, err := repositories.GetPostById(r.Context(), params["id"])
+		post, err := repositories.GetPostById(r.Context(), getPostId(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -118,18 +96,8 @@ func GetPostByIdHandler(s server.Server) http.HandlerFunc {
 
 func UpdatePostHandler(s server.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
-		token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(s.Config().JWTSecret), nil
-		})
+		claims, err := getToken(w, r, s.Config().JWTSecret)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		claims, ok := token.Claims.(*models.AppClaims)
-		if !ok || !token.Valid {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
 			return
 		}
 
@@ -139,9 +107,8 @@ func UpdatePostHandler(s server.Server) http.HandlerFunc {
 			return
 		}
 
-		params := mux.Vars(r)
 		post := &models.Post{
-			Id:          params["id"],
+			Id:          getPostId(r),
 			UserId:      claims.UserId,
 			PostContent: req.PostContent,
 		}
@@ -162,23 +129,12 @@ func UpdatePostHandler(s server.Server) http.HandlerFunc {
 
 func DeletePostHandler(s server.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
-		token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(s.Config().JWTSecret), nil
-		})
+		claims, err := getToken(w, r, s.Config().JWTSecret)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		claims, ok := token.Claims.(*models.AppClaims)
-		if !ok || !token.Valid {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
-			return
-		}
-
-		params := mux.Vars(r)
-		if err := repositories.DeletePost(r.Context(), params["id"], claims.UserId); err != nil {
+		if err := repositories.DeletePost(r.Context(), getPostId(r), claims.UserId); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -189,5 +145,47 @@ func DeletePostHandler(s server.Server) http.HandlerFunc {
 		json.NewEncoder(w).Encode(&ActionResponse{
 			Message: "post deleted",
 		})
+	}
+}
+
+func getPostId(r *http.Request) string {
+	return mux.Vars(r)["id"]
+}
+
+func ListPostsHandler(s server.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		limitStr := r.URL.Query().Get("limit")
+		pageStr := r.URL.Query().Get("page")
+
+		limit := uint64(10)
+		if limitStr != "" {
+			var err error
+			limit, err = strconv.ParseUint(limitStr, 10, 64)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+
+		page := uint64(0)
+		if pageStr != "" {
+			var err error
+			page, err = strconv.ParseUint(pageStr, 10, 64)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+
+		posts, err := repositories.ListPosts(r.Context(), limit, page)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		json.NewEncoder(w).Encode(posts)
 	}
 }

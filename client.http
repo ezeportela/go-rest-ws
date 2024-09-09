@@ -32,11 +32,17 @@ Authorization: {{login.token}}
 ###
 
 # @ref login
+GET {{host}}/posts?page=1&limit=2
+Authorization: {{login.token}}
+
+###
+
+# @ref login
 POST {{host}}/posts
 Authorization: {{login.token}}
 
 {
-    "post_content": "This is my first post"
+    "post_content": "This is my second post"
 }
 
 ###

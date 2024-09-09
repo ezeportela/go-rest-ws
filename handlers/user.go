@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/ezeportela/go-rest-ws/models"
@@ -117,17 +116,8 @@ func LoginHandler(s server.Server) http.HandlerFunc {
 
 func MeHandler(s server.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
-		token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(s.Config().JWTSecret), nil
-		})
+		claims, err := getToken(w, r, s.Config().JWTSecret)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-		}
-
-		claims, ok := token.Claims.(*models.AppClaims)
-		if !ok || !token.Valid {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
 			return
 		}
 

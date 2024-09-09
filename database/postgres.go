@@ -134,3 +134,34 @@ func (r *PostgresRepository) DeletePost(ctx context.Context, id string, userId s
 	_, err := r.db.ExecContext(ctx, "DELETE FROM posts WHERE id = $1 AND user_id = $2", id, userId)
 	return err
 }
+
+func (r *PostgresRepository) ListPosts(ctx context.Context, limit uint64, page uint64) ([]*models.Post, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT id, post_content, user_id, created_at FROM posts ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, page*limit)
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Println("failed to close rows")
+		}
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	posts := make([]*models.Post, 0)
+	for rows.Next() {
+		post := &models.Post{}
+		err := rows.Scan(&post.Id, &post.PostContent, &post.UserId, &post.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
