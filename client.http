@@ -42,7 +42,7 @@ POST {{host}}/posts
 Authorization: {{login.token}}
 
 {
-    "post_content": "This is my second post"
+    "post_content": "This is my third post"
 }
 
 ###
@@ -66,3 +66,5 @@ Authorization: {{login.token}}
 # @ref login
 DELETE {{host}}/posts/2lq2JChJiv9xI7yRKfTNT9IM5vI
 Authorization: {{login.token}}
+
+###

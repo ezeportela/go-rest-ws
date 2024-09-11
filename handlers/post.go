@@ -55,6 +55,12 @@ func CreatePostHandler(s server.Server) http.HandlerFunc {
 			return
 		}
 
+		var postMessage = models.WebsocketMessage{
+			Type:    "post_created",
+			Payload: post,
+		}
+		s.Hub().Broadcast(postMessage, nil)
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 
