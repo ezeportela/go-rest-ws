@@ -8,3 +8,25 @@ services:
     restart: always
     ports:
       - "5432:5432"
+
+  backend:
+    build: "."
+    depends_on:
+      - postgres
+    ports:
+      - "5050:5050"
+    environment:
+      PORT: :5050
+      JWT_SECRET: secret
+      DATABASE_URL: postgres://postgres:admin1234@postgres:5432/mydb?sslmode=disable
+    restart: always
+
+  frontend:
+    build: "./frontend"
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    links:
+      - "backend:backend"
+    restart: always
